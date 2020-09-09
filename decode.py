@@ -1,10 +1,6 @@
-def decodeBMS(byte_data):
-    # encode = str(b"\x01\x03n\x00\x10\x00\x00\x00c\x14a'\x10\x02\xe9\x02\xee\x03\x15\x00\x00\x00\x00\x00\x00\x03\x15\x02\xe9\x13\xff\x06")
-    splited_data = byte_data.split('\\x')
-    my_hex = splited_data[1:]
-    print(my_hex)
-    for code in my_hex:
-        if len(code) > 2:
-            code = code.replace("'", "")[:-1]
-        hex2int = int(code, 16)
-        print(hex2int)
+rx = "01 03 6E 00 10 00 00 00 63 14 4E 27 10 03 22 03 17 03 3D 00 00 00 00 00 00 03 3D 03 17 13 FF 05 B9 0A 0F 00 00 26 F7 00 00 00 00 01 82 00 03 00 04 0C 2F 0C C2 0C 60 0C A3 0C D2 0C A6 0C A0 0C C8 0E 61 13 FF 0C D2 0B 55 0C 8C 0C 9E 05 B9 0C D4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0C 2F B1 AB"
+
+srx = rx.split(" ")
+
+print(srx)
+print(len(srx))
