@@ -95,6 +95,7 @@ if __name__ == "__main__":
 
     counter = 0
     isWake = False
+
     while True:
         buffer = ''
 
