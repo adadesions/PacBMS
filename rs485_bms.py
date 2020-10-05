@@ -33,7 +33,10 @@ def interprete_current(current_x):
     check_len = len(str(dec_I))
 
     charging_status =  'Charging' if str(dec_I)[0] == '0' else 'Discharge'
-    I = format(int(str(dec_I)[1:])/490, '.2f')
+    try:
+        I = format(int(str(dec_I)[1:])/490, '.2f')
+    except ValueError:
+        I = 0
 
     return (I, charging_status)
 
@@ -85,7 +88,7 @@ if __name__ == "__main__":
     command = b'\x01\x03\x10\x00\x00\x37\x00\xdc'
     wakeup_code = b'\x01\x03\x00\x00\x00\x0a\xc5\xcd'
     # command = b'01 03 10 00 00 37 00 DC'
-    ser485 = serial.rs485.RS485(port=serial_init["port"], baudrate=serial_init["baudrate"], timeout=2.0)
+    ser485 = serial.rs485.RS485(port=serial_init["port"], baudrate=serial_init["baudrate"], timeout=10.0)
     ser485.rs485_mode = serial.rs485.RS485Settings(True, False)
 
     if ser485.is_open:
@@ -100,7 +103,6 @@ if __name__ == "__main__":
         buffer = ''
 
         ser485.write(command)
-        print('===== RX-000{} ====='.format(counter))
         response = ser485.readline()
 
         if not response:
@@ -110,20 +112,19 @@ if __name__ == "__main__":
             if ser485.readline():
                 isWake = True
                 print('BMS WOKE UP, Try again!!!')
-                break
             continue
 
         hex_data = response.hex()
 
         if HEAD_PROTOCOL == '01036e':
-            print('HEAD:', HEAD_PROTOCOL)
             buffer = hex_data
-
             ser485.write(command)
             next_line = ser485.readline()
             buffer = ''.join([buffer, next_line.hex()])
 
             semantic_data = ada_interpreter(buffer)
-            print(semantic_data)
 
-        counter += 1
+            if semantic_data['CELL_NUM'] < 32:
+                print('===== RX-000{} ====='.format(counter))
+                print(semantic_data)
+                counter += 1
