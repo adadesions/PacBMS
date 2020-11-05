@@ -1,27 +1,8 @@
 import serial
 import serial.rs485
+import struct
 from pymodbus.client.sync import ModbusSerialClient
-
-
-def decodeBMS(byte_data):
-    # encode = str(b"\x01\x03n\x00\x10\x00\x00\x00c\x14a'\x10\x02\xe9\x02\xee\x03\x15\x00\x00\x00\x00\x00\x00\x03\x15\x02\xe9\x13\xff\x06")
-    data = str(byte_data)
-    splited_data = data.split('\\x')
-    my_hex = splited_data[1:]
-    hex2int = ''
-
-    for code in my_hex:
-        code = code.replace("'", "").replace("\\n", "").replace("\\t", "")
-        if len(code) > 2:
-            code = code[:-1]
-        try:
-            hex2int = int(code, 16)
-        except ValueError:
-            print("Can't convert:", code)
-        print(hex2int, end="-")
-    print()
-
-    return hex2int
+from lab_firestore import send_to_firestore
 
 
 def interprete_temp(temp_x):
@@ -61,7 +42,7 @@ def ada_interpreter(buffer):
 
             semantic_data[labels[i]] = int(data, 16)
 
-            if 'V_CELL' in labels[i]:
+            if 'V_' in labels[i]:
                 semantic_data[labels[i]] = format(semantic_data[labels[i]]*0.01, '.2f')
             if 'TEMP' in labels[i]:
                 semantic_data[labels[i]] = interprete_temp(semantic_data[labels[i]])
@@ -108,11 +89,12 @@ if __name__ == "__main__":
         response = ser485.readline()
 
         if not response:
-            print(response)
+            ser485.timeout = 0.1
             ser485.write(wakeup_code)
             print('===== SENT WAKEUP CODE =====')
             if ser485.readline():
                 isWake = True
+                ser485.timeout = 3.0 
                 print('BMS WOKE UP, Try again!!!')
             continue
 
@@ -132,4 +114,5 @@ if __name__ == "__main__":
             if semantic_data['CELL_NUM'] < 32:
                 print('===== RX-000{} ====='.format(counter))
                 print(semantic_data)
+                send_to_firestore(semantic_data)
                 counter += 1
