@@ -1,0 +1,2 @@
+001 => {'min_temp': '32', 'battery_str': '100 %', 'battery_num': 100.0, 'max_temp': '32', 'voltage': 50.5}
+002 => {'max_temp': '32', 'battery_num': 100.0, 'min_temp': '32', 'battery_str': '100 %', 'voltage': 50.5}
