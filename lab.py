@@ -52,21 +52,19 @@ def ada_interpreter(buffer):
     sep_data = [no_head[i*sep:sep*(i+1)] for i in range(d_len)]
 
     for (i, data) in enumerate(sep_data):
-        try:
-            if 'CURCADC' in labels[i]:
-                current = interprete_current(data)
-                semantic_data[labels[i]] = current[0]
-                semantic_data['CHARGING_STATUS'] = current[1]
-                continue
-
-            semantic_data[labels[i]] = int(data, 16)
-
-            if 'V_CELL' in labels[i]:
-                semantic_data[labels[i]] = format(semantic_data[labels[i]]*0.01, '.2f')
-            if 'TEMP' in labels[i]:
-                semantic_data[labels[i]] = interprete_temp(semantic_data[labels[i]])
-        except IndexError:
+        if 'CURCADC' in labels[i]:
+            current = interprete_current(data)
+            semantic_data[labels[i]] = current[0]
+            semantic_data['CHARGING_STATUS'] = current[1]
             continue
+
+        semantic_data[labels[i]] = int(data, 16)
+
+        if 'V_CELL' in labels[i]:
+            semantic_data[labels[i]] = format(semantic_data[labels[i]]*0.01, '.2f')
+        if 'TEMP' in labels[i]:
+            semantic_data[labels[i]] = interprete_temp(semantic_data[labels[i]])
+
 
     semantic_data['VOLTAGE'] = format(semantic_data['VOLTAGE']*0.01, '.2f')
     semantic_data['T_MAX'] = interprete_temp(semantic_data['T_MAX'])
@@ -79,7 +77,7 @@ def ada_interpreter(buffer):
 
 if __name__ == "__main__":
     serial_init = {
-        "port": "COM5",
+        "port": "COM8",
         "baudrate": "9600",
         "parity": serial.PARITY_NONE,
         "stopbits": serial.STOPBITS_ONE,
@@ -90,8 +88,8 @@ if __name__ == "__main__":
     command = b'\x01\x03\x10\x00\x00\x37\x00\xdc'
     wakeup_code = b'\x01\x03\x00\x00\x00\x0a\xc5\xcd'
     # command = b'01 03 10 00 00 37 00 DC'
-    ser485 = serial.rs485.RS485(port=serial_init["port"], baudrate=serial_init["baudrate"], timeout=3.0)
-    ser485.rs485_mode = serial.rs485.RS485Settings(True, False)
+    ser485 = serial.rs485.RS485(port=serial_init["port"], baudrate=serial_init["baudrate"], timeout=1.0)
+    ser485.rs485_mode = serial.rs485.RS485Settings(False, True)
 
     if ser485.is_open:
         print("Port opened")
@@ -100,36 +98,11 @@ if __name__ == "__main__":
 
     counter = 0
     isWake = False
-
+    counter = 0
     while True:
-        buffer = ''
-
-        ser485.write(command)
+        ser485.write(b'\xff\x99')
+        # ser485.write(command)
+        # ser485.write(wakeup_code)
         response = ser485.readline()
-
-        if not response:
-            print(response)
-            ser485.write(wakeup_code)
-            print('===== SENT WAKEUP CODE =====')
-            if ser485.readline():
-                isWake = True
-                print('BMS WOKE UP, Try again!!!')
-            continue
-
-        hex_data = response.hex()
-
-        if HEAD_PROTOCOL == '01036e':
-            buffer = hex_data
-            ser485.write(command)
-            next_line = ser485.readline()
-            buffer = ''.join([buffer, next_line.hex()])
-
-
-            print(buffer)
-
-            semantic_data = ada_interpreter(buffer)
-
-            if semantic_data['CELL_NUM'] < 32:
-                print('===== RX-000{} ====='.format(counter))
-                print(semantic_data)
-                counter += 1
+        print(counter, '.', response)
+        counter += 1
