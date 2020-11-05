@@ -134,3 +134,6 @@ dmypy.json
 # window
 .exe
 .stackdump
+
+# my_ke
+.adake.json
