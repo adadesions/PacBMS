@@ -83,36 +83,36 @@ if __name__ == "__main__":
     isWake = False
 
     while True:
-        buffer = ''
+        try:
+            buffer = ''
 
-        ser485.write(command)
-        response = ser485.readline()
-
-        if not response:
-            ser485.timeout = 0.1
-            ser485.write(wakeup_code)
-            print('===== SENT WAKEUP CODE =====')
-            if ser485.readline():
-                isWake = True
-                ser485.timeout = 3.0 
-                print('BMS WOKE UP, Try again!!!')
-            continue
-
-        hex_data = response.hex()
-
-        if HEAD_PROTOCOL == '01036e':
-            buffer = hex_data
             ser485.write(command)
-            next_line = ser485.readline()
-            buffer = ''.join([buffer, next_line.hex()])
+            response = ser485.readline()
 
+            if not response:
+                ser485.timeout = 0.1
+                ser485.write(wakeup_code)
+                print('===== SENT WAKEUP CODE =====')
+                if ser485.readline():
+                    isWake = True
+                    ser485.timeout = 3.0 
+                    print('BMS WOKE UP, Try again!!!')
+                continue
 
-            print(buffer)
+            hex_data = response.hex()
 
-            semantic_data = ada_interpreter(buffer)
+            if HEAD_PROTOCOL == '01036e':
+                buffer = hex_data
+                ser485.write(command)
+                next_line = ser485.readline()
+                buffer = ''.join([buffer, next_line.hex()])
 
-            if semantic_data['CELL_NUM'] < 32:
-                print('===== RX-000{} ====='.format(counter))
-                print(semantic_data)
-                send_to_firestore(semantic_data)
-                counter += 1
+                semantic_data = ada_interpreter(buffer)
+
+                if semantic_data['CELL_NUM'] < 32:
+                    print('===== RX-000{} ====='.format(counter))
+                    print(semantic_data)
+                    send_to_firestore(semantic_data)
+                    counter += 1
+        except KeyError:
+            continue
