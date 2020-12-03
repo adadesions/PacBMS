@@ -1,3 +1,4 @@
+import sys
 import serial
 import serial.rs485
 import struct
@@ -59,8 +60,14 @@ def ada_interpreter(buffer):
 
 
 if __name__ == "__main__":
+    port = ''
+    if sys.platform == 'win32' or sys.platform == 'cygwin':
+        port = 'COM5'
+    elif sys.platform == 'linux':
+        port = '/dev/ttyUSB0'
+        
     serial_init = {
-        "port": "COM5",
+        "port": port,
         "baudrate": "9600",
         "parity": serial.PARITY_NONE,
         "stopbits": serial.STOPBITS_ONE,
