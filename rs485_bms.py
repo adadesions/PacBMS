@@ -3,7 +3,7 @@ import serial
 import serial.rs485
 import struct
 from pymodbus.client.sync import ModbusSerialClient
-from lab_firestore import send_to_firestore
+# from lab_firestore import send_to_firestore
 
 
 def interprete_temp(temp_x):
@@ -65,6 +65,8 @@ if __name__ == "__main__":
         port = 'COM5'
     elif sys.platform == 'linux':
         port = '/dev/ttyUSB0'
+    elif sys.platform == 'darwin':
+        port = '/dev/cu.usbserial-00000000'
         
     serial_init = {
         "port": port,
@@ -119,7 +121,7 @@ if __name__ == "__main__":
                 if semantic_data['CELL_NUM'] < 32:
                     print('===== RX-000{} ====='.format(counter))
                     print(semantic_data)
-                    send_to_firestore(semantic_data)
+                    # send_to_firestore(semantic_data)
                     counter += 1
         except KeyError:
             continue
